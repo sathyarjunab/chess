@@ -1,35 +1,36 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from "react";
+import BoardComponent from "./board";
+import { validateMove } from "./wasm/chessEngine";
 
-function App() {
-  const [count, setCount] = useState(0)
+// type MoveInfo = {
+//   location: string;
+// };
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+const AppComponent = () => {
+  const game = "7k/5Q2/7K/8/8/8/8/8 b - - 0 1";
+  const [pieceLocation, setPieceLocation] = useState<string>();
 
-export default App
+  async function getMoves() {
+    try {
+      const result = await validateMove(game, pieceLocation ?? "", "h8");
+      console.log(result);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  useEffect(() => {
+    console.log(pieceLocation);
+    console.log(pieceLocation ?? "");
+    getMoves();
+  }, [pieceLocation]);
+
+  // const prevGame = localStorage.getItem("FEN");
+  // if (prevGame) {
+  //   game = prevGame;
+  // }
+
+  return <BoardComponent fen={game} setPieceLocation={setPieceLocation} />; // <MoveInfo location />;
+};
+
+export default AppComponent;
