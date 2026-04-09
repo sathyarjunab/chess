@@ -1,36 +1,76 @@
 import { useEffect, useState } from "react";
+import { z } from "zod";
 import BoardComponent from "./board";
+import { boardToFen, fenToBoard } from "./util/bord-helper";
+import { GameStateSchema } from "./validator/commonValidator";
 import { validateMove } from "./wasm/chessEngine";
-
-// type MoveInfo = {
-//   location: string;
-// };
+import { yo } from "zod/locales";
 
 const AppComponent = () => {
-  const game = "7k/5Q2/7K/8/8/8/8/8 b - - 0 1";
-  const [pieceLocation, setPieceLocation] = useState<string>();
-
-  async function getMoves() {
-    try {
-      const result = await validateMove(game, pieceLocation ?? "", "h8");
-      console.log(result);
-    } catch (err) {
-      console.error(err);
-    }
-  }
+  const [location, setLocation] = useState<string | undefined>(undefined);
+  const [youMightMove, setYouMightMove] = useState<string[]>([]);
+  // initialise a game
+  const gameSaved = JSON.parse(localStorage.getItem("GameState") || "{}");
+  const game = GameStateSchema.safeParse(gameSaved).data;
+  const [gameState, setGameState] = useState<z.infer<typeof GameStateSchema>>(
+    () => {
+      if (game) {
+        return game;
+      } else {
+        return {
+          board: fenToBoard(
+            "RNBQKBNR/PPPPPPPP/8/8/8/8/pppppppp/rnbqkbnr w - - 0 1",
+          ),
+          castling: "-",
+          enPassant: "-",
+          fullMoves: 0,
+          halfMoves: 0,
+          turnToPlay: "WHITE",
+          whiteKingsLocation: "d1",
+          blackKingsLocation: "d8",
+        };
+      }
+    },
+  );
 
   useEffect(() => {
-    console.log(pieceLocation);
-    console.log(pieceLocation ?? "");
-    getMoves();
-  }, [pieceLocation]);
+    if (!location) return;
+    console.log(location);
 
-  // const prevGame = localStorage.getItem("FEN");
-  // if (prevGame) {
-  //   game = prevGame;
-  // }
+    const run = async () => {
+      const fen =
+        boardToFen(gameState.board) +
+        " " +
+        (gameState.turnToPlay === "WHITE" ? "w" : "b") +
+        " " +
+        gameState.castling +
+        " " +
+        gameState.enPassant +
+        " " +
+        gameState.fullMoves +
+        " " +
+        gameState.halfMoves;
 
-  return <BoardComponent fen={game} setPieceLocation={setPieceLocation} />; // <MoveInfo location />;
+      const result = await validateMove(
+        fen,
+        location,
+        gameState.turnToPlay === "WHITE"
+          ? gameState.whiteKingsLocation
+          : gameState.blackKingsLocation,
+      );
+      setYouMightMove(result);
+    };
+
+    run();
+  }, [location, gameState]);
+  return (
+    <BoardComponent
+      gameState={gameState}
+      setGameState={setGameState}
+      setLocation={setLocation}
+      youMightMove={youMightMove}
+    />
+  ); // <MoveInfo location />;
 };
 
 export default AppComponent;

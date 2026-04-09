@@ -2,6 +2,14 @@ import type { Board, Piece } from "../types/common";
 
 // const columns = ["h", "g", "f", "e", "d", "c", "b", "a"];
 
+export function isWhitePiece(p: Piece) {
+  return p !== null && p === p.toUpperCase();
+}
+
+export function isBlackPiece(p: Piece) {
+  return p !== null && p === p.toLowerCase();
+}
+
 export const pieceImages: Record<string, string> = {
   P: "pawn-w.svg",
   R: "rook-w.svg",
@@ -25,7 +33,7 @@ export function fenToBoard(fen: string): Board {
   const board: Board = [];
 
   rows.forEach((row) => {
-    const boardRow: Piece[] = [];
+    const boardRow: (Piece | null)[] = [];
 
     for (const ch of row) {
       if (ch >= "1" && ch <= "8") {
@@ -72,3 +80,5 @@ export function boardToFen(board: Board): string {
 
   return rows.join("/");
 }
+
+export function moveChecker(board: Board) {}
