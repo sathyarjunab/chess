@@ -16,9 +16,9 @@ const AppComponent = () => {
       if (game) {
         return game;
       } else {
-        return {
+        const gameState = {
           board: fenToBoard(
-            "R4K1R/P2b1P2/3BPP1P/2PP1B2/3p1p2/2n1p2p/ppp3p1/r2qk2r w - - 0 0",
+            "RNBQKBNR/PPPPPPPP/8/8/8/8/pppppppp/rnbqkbnr w KQKQ - 0 1",
           ),
           castling: [
             {
@@ -45,10 +45,12 @@ const AppComponent = () => {
           enPassant: "-",
           fullMoves: 0,
           halfMoves: 0,
-          turnToPlay: "BLACK",
-          whiteKingsLocation: "c1",
+          turnToPlay: "WHITE",
+          whiteKingsLocation: "d1",
           blackKingsLocation: "d8",
-        };
+        } as z.infer<typeof GameStateSchema>;
+        localStorage.setItem("GameState", JSON.stringify(gameState));
+        return gameState;
       }
     },
   );
@@ -64,6 +66,8 @@ const AppComponent = () => {
       if (curr.isCastlingPossible) return acc + curr.for;
       return acc;
     }, "");
+
+    localStorage.setItem("GameState", JSON.stringify(gameState));
 
     const fen =
       boardToFen(gameState.board) +
