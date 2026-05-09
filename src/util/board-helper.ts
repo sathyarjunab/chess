@@ -80,5 +80,3 @@ export function boardToFen(board: Board): string {
 
   return rows.join("/");
 }
-
-export function moveChecker(board: Board) {}
