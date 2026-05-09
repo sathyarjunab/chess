@@ -90,8 +90,6 @@ const AppComponent = () => {
           ? gameState.whiteKingsLocation
           : gameState.blackKingsLocation,
       );
-      console.log(gameState.whiteKingsLocation);
-      console.log(result);
 
       if (isActive) {
         setLegalMoves(result);

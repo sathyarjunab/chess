@@ -56,12 +56,34 @@ const BoardComponent: React.FC<BoardComponentProps> = ({
           rowIndex === 7 &&
           (colIndex === 2 || colIndex === 6));
 
+      let isEnPassantMove = false;
+
+      if (previousSelection) {
+        isEnPassantMove = isEnPassant(previousSelection, y, rowIndex, colIndex);
+      }
       if (!isCastlingMove) {
-        setGameState((prev) => ({
-          ...prev,
-          turnToPlay: prev.turnToPlay === "WHITE" ? "BLACK" : "WHITE",
-          board: updatedBoard,
-        }));
+        if (isEnPassantMove) {
+          const enPassantBoard = structuredClone(gameState.board);
+          enPassantBoard[rowIndex][colIndex] = previousSelection;
+          enPassantBoard[x][y] = null;
+          if (previousSelection === "P") {
+            enPassantBoard[rowIndex - 1][colIndex] = null;
+          } else {
+            enPassantBoard[rowIndex + 1][colIndex] = null;
+          }
+
+          setGameState((prev) => ({
+            ...prev,
+            turnToPlay: prev.turnToPlay === "WHITE" ? "BLACK" : "WHITE",
+            board: enPassantBoard,
+          }));
+        } else {
+          setGameState((prev) => ({
+            ...prev,
+            turnToPlay: prev.turnToPlay === "WHITE" ? "BLACK" : "WHITE",
+            board: updatedBoard,
+          }));
+        }
       } else {
         const castledBoard = structuredClone(gameState.board);
         castledBoard[rowIndex][colIndex] = previousSelection;
@@ -108,10 +130,13 @@ const BoardComponent: React.FC<BoardComponentProps> = ({
               blackKingsLocation: `${columns[colIndex]}${rowIndex + 1}`,
             }
           : {}),
+        enPassant: "-",
       }));
 
-      if (previousSelection)
+      if (previousSelection) {
         handleCastlingMutation(previousSelection, isCastlingMove, x, y);
+        handleEnPassantMutation(previousSelection, x, y, rowIndex, colIndex);
+      }
     }
 
     if (!currentSelection) {
@@ -179,6 +204,44 @@ const BoardComponent: React.FC<BoardComponentProps> = ({
       if (fromRow === 7 && fromCol === 0) disableRights(["q"]);
       if (fromRow === 7 && fromCol === 7) disableRights(["k"]);
     }
+  }
+
+  function handleEnPassantMutation(
+    previousSelection: Piece,
+    fromRow: number,
+    fromCol: number,
+    toRow: number,
+    toCol: number,
+  ) {
+    // If a pawn moves two squares forward from its starting position, it can be captured en passant on the opponent's next turn. This means we need to set the en passant target square in the game state when this happens, and also clear it if any other move is made.
+    if (
+      (previousSelection === "P" || previousSelection === "p") &&
+      Math.abs(fromRow - toRow) === 2 &&
+      Math.abs(fromCol - toCol) === 0
+    ) {
+      toRow = previousSelection === "P" ? toRow : toRow + 2; // The en passant target square is the square that the pawn "jumped over"
+      setGameState((prev) => ({
+        ...prev,
+        enPassant: `${columns[fromCol]}${toRow}`,
+      }));
+    }
+  }
+
+  function isEnPassant(
+    previousSelection: Piece,
+    fromCol: number,
+    toRow: number,
+    toCol: number,
+  ) {
+    // Check if the move is an en passant capture
+    if (
+      (previousSelection === "P" || previousSelection === "p") &&
+      fromCol !== toCol &&
+      gameState.enPassant === `${columns[toCol]}${toRow + 1}`
+    ) {
+      return true;
+    }
+    return false;
   }
 
   return (
