@@ -1,4 +1,5 @@
 import ChessValidator from "./chess_validator.js";
+import wasmUrl from "./chess_validator.wasm?url";
 
 export type ValidateMove = (
   fen: string,
@@ -20,7 +21,13 @@ let moduleInstance: ChessValidatorModule | null = null;
 async function loadModule(): Promise<ChessValidatorModule> {
   if (!moduleInstance) {
     moduleInstance = await ChessValidator({
-      locateFile: (file: string) => `/public/wasm/${file}`,
+      locateFile: (file: string) => {
+        if (file.endsWith(".wasm")) {
+          return wasmUrl;
+        }
+
+        return file;
+      },
     });
   }
 
