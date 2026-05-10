@@ -5,9 +5,29 @@ import { boardToFen, fenToBoard } from "./util/board-helper";
 import { GameStateSchema } from "./validator/commonValidator";
 import { validateMove } from "./wasm/chessEngine";
 
+const INITIAL_GAME_STATE = {
+  board: fenToBoard(
+    "RNBQKBNR/PPPPPPPP/8/8/8/8/pppppppp/rnbqkbnr w KQKQ - 0 1",
+  ),
+  castling: [
+    { isCastlingPossible: true, isCastlingPossibleNow: false, for: "K" },
+    { isCastlingPossible: true, isCastlingPossibleNow: false, for: "Q" },
+    { isCastlingPossible: true, isCastlingPossibleNow: false, for: "k" },
+    { isCastlingPossible: true, isCastlingPossibleNow: false, for: "q" },
+  ],
+  enPassant: "-",
+  fullMoves: 0,
+  halfMoves: 0,
+  turnToPlay: "WHITE",
+  whiteKingsLocation: "d1",
+  blackKingsLocation: "d8",
+} as const;
+
 const AppComponent = () => {
   const [location, setLocation] = useState<`${string}${number}` | null>(null);
   const [legalMoves, setLegalMoves] = useState<string[]>([]);
+  const [gameResult, setGameResult] = useState<"WHITE" | "BLACK" | null>(null);
+
   // initialise a game
   const gameSaved = JSON.parse(localStorage.getItem("GameState") || "{}");
   const game = GameStateSchema.safeParse(gameSaved).data;
@@ -16,44 +36,21 @@ const AppComponent = () => {
       if (game) {
         return game;
       } else {
-        const gameState = {
-          board: fenToBoard(
-            "RNBQKBNR/PPPPPPPP/8/8/8/8/pppppppp/rnbqkbnr w KQKQ - 0 1",
-          ),
-          castling: [
-            {
-              isCastlingPossible: true,
-              isCastlingPossibleNow: false,
-              for: "K",
-            },
-            {
-              isCastlingPossible: true,
-              isCastlingPossibleNow: false,
-              for: "Q",
-            },
-            {
-              isCastlingPossible: true,
-              isCastlingPossibleNow: false,
-              for: "k",
-            },
-            {
-              isCastlingPossible: true,
-              isCastlingPossibleNow: false,
-              for: "q",
-            },
-          ],
-          enPassant: "-",
-          fullMoves: 0,
-          halfMoves: 0,
-          turnToPlay: "WHITE",
-          whiteKingsLocation: "d1",
-          blackKingsLocation: "d8",
-        } as z.infer<typeof GameStateSchema>;
-        localStorage.setItem("GameState", JSON.stringify(gameState));
-        return gameState;
+        const initialState = { ...INITIAL_GAME_STATE };
+        localStorage.setItem("GameState", JSON.stringify(initialState));
+        return initialState as z.infer<typeof GameStateSchema>;
       }
     },
   );
+
+  const resetGame = () => {
+    const initialState = { ...INITIAL_GAME_STATE };
+    setGameState(initialState as z.infer<typeof GameStateSchema>);
+    setGameResult(null);
+    setLegalMoves([]);
+    setLocation(null);
+    localStorage.setItem("GameState", JSON.stringify(initialState));
+  };
 
   useEffect(() => {
     if (!location) return;
@@ -92,7 +89,13 @@ const AppComponent = () => {
       );
 
       if (isActive) {
-        setLegalMoves(result);
+        if (result.includes("WHITE WON")) {
+          setGameResult("WHITE");
+        } else if (result.includes("BLACK WON")) {
+          setGameResult("BLACK");
+        } else {
+          setLegalMoves(result);
+        }
       }
     };
 
@@ -121,6 +124,8 @@ const AppComponent = () => {
       setLocation={setLocation}
       legalMoves={legalMoves}
       setLegalMoves={setLegalMoves}
+      gameResult={gameResult}
+      resetGame={resetGame}
     />
   ); // <MoveInfo location />;
 };
