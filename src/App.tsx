@@ -6,9 +6,7 @@ import { GameStateSchema } from "./validator/commonValidator";
 import { validateMove } from "./wasm/chessEngine";
 
 const INITIAL_GAME_STATE = {
-  board: fenToBoard(
-    "RNBQKBNR/PPPPPPPP/8/8/8/8/pppppppp/rnbqkbnr w KQKQ - 0 1",
-  ),
+  board: fenToBoard("RNBQKBNR/PPPPPPPP/8/8/8/8/pppppppp/rnbqkbnr w KQKQ - 0 1"),
   castling: [
     { isCastlingPossible: true, isCastlingPossibleNow: false, for: "K" },
     { isCastlingPossible: true, isCastlingPossibleNow: false, for: "Q" },
@@ -21,7 +19,7 @@ const INITIAL_GAME_STATE = {
   turnToPlay: "WHITE",
   whiteKingsLocation: "d1",
   blackKingsLocation: "d8",
-} as const;
+} satisfies z.infer<typeof GameStateSchema>;
 
 const AppComponent = () => {
   const [location, setLocation] = useState<`${string}${number}` | null>(null);
