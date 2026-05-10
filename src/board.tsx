@@ -30,7 +30,45 @@ const BoardComponent: React.FC<BoardComponentProps> = ({
     col: number;
   } | null>(null);
 
+  const [pendingPromotion, setPendingPromotion] = React.useState<{
+    board: (Piece | null)[][];
+    fromRow: number;
+    fromCol: number;
+    toRow: number;
+    toCol: number;
+    pawn: Piece.WhitePawn | Piece.BlackPawn;
+    isCastlingMove: boolean;
+    isEnPassantMove: boolean;
+  } | null>(null);
+
+  function isPromotionMove(
+    pawn: Piece.WhitePawn | Piece.BlackPawn,
+    toRow: number,
+  ) {
+    return (
+      (pawn === Piece.WhitePawn && toRow === 7) ||
+      (pawn === Piece.BlackPawn && toRow === 0)
+    );
+  }
+
+  function promotionOptions(pawn: Piece.WhitePawn | Piece.BlackPawn) {
+    return pawn === Piece.WhitePawn
+      ? ([
+          Piece.WhiteQueen,
+          Piece.WhiteRook,
+          Piece.WhiteBishop,
+          Piece.WhiteKnight,
+        ] as const)
+      : ([
+          Piece.BlackQueen,
+          Piece.BlackRook,
+          Piece.BlackBishop,
+          Piece.BlackKnight,
+        ] as const);
+  }
+
   function handleClick(rowIndex: number, colIndex: number) {
+    if (pendingPromotion) return;
     const { row: x = -1, col: y = -1 } = coOrdinates || {};
     const currentSelection = gameState.board[rowIndex][
       colIndex
@@ -71,6 +109,24 @@ const BoardComponent: React.FC<BoardComponentProps> = ({
           } else {
             enPassantBoard[rowIndex + 1][colIndex] = null;
           }
+          if (
+            previousSelection &&
+            (previousSelection === Piece.WhitePawn ||
+              previousSelection === Piece.BlackPawn) &&
+            isPromotionMove(previousSelection, rowIndex)
+          ) {
+            setPendingPromotion({
+              board: enPassantBoard,
+              fromRow: x,
+              fromCol: y,
+              toRow: rowIndex,
+              toCol: colIndex,
+              pawn: previousSelection,
+              isCastlingMove,
+              isEnPassantMove,
+            });
+            return;
+          }
 
           setGameState((prev) => ({
             ...prev,
@@ -78,6 +134,24 @@ const BoardComponent: React.FC<BoardComponentProps> = ({
             board: enPassantBoard,
           }));
         } else {
+          if (
+            previousSelection &&
+            (previousSelection === Piece.WhitePawn ||
+              previousSelection === Piece.BlackPawn) &&
+            isPromotionMove(previousSelection, rowIndex)
+          ) {
+            setPendingPromotion({
+              board: updatedBoard,
+              fromRow: x,
+              fromCol: y,
+              toRow: rowIndex,
+              toCol: colIndex,
+              pawn: previousSelection,
+              isCastlingMove,
+              isEnPassantMove,
+            });
+            return;
+          }
           setGameState((prev) => ({
             ...prev,
             turnToPlay: prev.turnToPlay === "WHITE" ? "BLACK" : "WHITE",
@@ -246,6 +320,63 @@ const BoardComponent: React.FC<BoardComponentProps> = ({
 
   return (
     <div className="h-screen w-screen flex justify-center items-center bg-gray-900 bg-[url('/background.jpg')] bg-cover bg-center">
+      {pendingPromotion && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/70">
+          <div className="rounded-xl border border-gray-600 bg-gray-900 p-4">
+            <div className="mb-3 text-center text-sm text-gray-200">
+              Choose promotion
+            </div>
+            <div className="flex gap-3">
+              {promotionOptions(pendingPromotion.pawn).map((promoteTo) => (
+                <button
+                  key={promoteTo}
+                  className="flex h-14 w-14 items-center justify-center rounded-lg border border-gray-600 bg-gray-800 hover:bg-gray-700"
+                  onClick={() => {
+                    const promotedBoard = structuredClone(
+                      pendingPromotion.board,
+                    );
+                    promotedBoard[pendingPromotion.toRow][
+                      pendingPromotion.toCol
+                    ] = promoteTo;
+
+                    setPendingPromotion(null);
+                    setCoordinates(null);
+                    setLocation(null);
+                    setLegalMoves([]);
+
+                    setGameState((prev) => ({
+                      ...prev,
+                      turnToPlay:
+                        prev.turnToPlay === "WHITE" ? "BLACK" : "WHITE",
+                      board: promotedBoard,
+                      enPassant: "-",
+                    }));
+
+                    handleCastlingMutation(
+                      pendingPromotion.pawn,
+                      pendingPromotion.isCastlingMove,
+                      pendingPromotion.fromRow,
+                      pendingPromotion.fromCol,
+                    );
+                    handleEnPassantMutation(
+                      pendingPromotion.pawn,
+                      pendingPromotion.fromRow,
+                      pendingPromotion.fromCol,
+                      pendingPromotion.toRow,
+                      pendingPromotion.toCol,
+                    );
+                  }}
+                >
+                  <img
+                    src={`${pieceImages[promoteTo]}`}
+                    className="h-12 w-12"
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
       <div className="rounded-xl overflow-hidden border-4 border-gray-700">
         {gameState.board.map((row, rowIndex) => (
           <div key={rowIndex} className="flex">
