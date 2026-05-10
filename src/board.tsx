@@ -315,57 +315,49 @@ const BoardComponent: React.FC<BoardComponentProps> = ({
   }
 
   return (
-    <div className="h-screen w-screen flex flex-col justify-center items-center bg-[#1e1e1e] font-sans py-4">
+    <div className="h-screen w-screen flex flex-col justify-center items-center bg-[#1e1e1e] font-sans py-2 sm:py-4">
       {/* Game Header */}
-      <div className="mb-4 sm:mb-6 flex items-center justify-between w-full max-w-[448px] sm:max-w-[512px] px-4">
-        <div className="flex items-center gap-4">
-          <div className="text-2xl font-light tracking-widest text-white uppercase">
+      <div className="mb-2 sm:mb-6 flex items-center justify-between w-full max-w-[320px] sm:max-w-[448px] md:max-w-[512px] px-2 sm:px-4">
+        <div className="flex items-center gap-2 sm:gap-4">
+          <div className="text-lg sm:text-2xl font-light tracking-widest text-white uppercase">
             Chess <span className="text-amber-500 font-bold">Pro</span>
           </div>
         </div>
         <button
           onClick={resetGame}
-          className="px-4 py-2 text-sm font-medium text-gray-300 transition-colors bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:text-white"
+          className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-gray-300 transition-colors bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:text-white"
         >
-          Reset Match
+          Reset
         </button>
       </div>
 
       {pendingPromotion && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm transition-all duration-300">
-          <div className="relative rounded-2xl border border-white/10 bg-gray-900/90 p-8 shadow-2xl backdrop-blur-xl">
-            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-600 px-4 py-1 rounded-full text-xs font-bold text-white uppercase tracking-wider">
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm transition-all duration-300 px-4">
+          <div className="relative rounded-2xl border border-white/10 bg-gray-900/90 p-4 sm:p-8 shadow-2xl backdrop-blur-xl w-full max-w-sm">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-600 px-3 py-0.5 rounded-full text-[10px] sm:text-xs font-bold text-white uppercase tracking-wider">
               Promotion
             </div>
-            <div className="mb-6 text-center text-lg font-light text-gray-200">
-              Select your next move
+            <div className="mb-4 sm:mb-6 text-center text-base sm:text-lg font-light text-gray-200">
+              Select piece
             </div>
-            <div className="flex gap-4">
+            <div className="flex justify-center gap-2 sm:gap-4">
               {promotionOptions(pendingPromotion.pawn).map((promoteTo) => (
                 <button
                   key={promoteTo}
-                  className="group flex h-20 w-20 items-center justify-center rounded-xl border border-white/5 bg-white/5 transition-all duration-200 hover:scale-110 hover:bg-amber-600/20 hover:border-amber-600/50"
+                  className="group flex h-14 w-14 sm:h-20 sm:w-20 items-center justify-center rounded-xl border border-white/5 bg-white/5 transition-all duration-200 hover:scale-105 sm:hover:scale-110 hover:bg-amber-600/20 hover:border-amber-600/50"
                   onClick={() => {
-                    const promotedBoard = structuredClone(
-                      pendingPromotion.board,
-                    );
-                    promotedBoard[pendingPromotion.toRow][
-                      pendingPromotion.toCol
-                    ] = promoteTo;
-
+                    const promotedBoard = structuredClone(pendingPromotion.board);
+                    promotedBoard[pendingPromotion.toRow][pendingPromotion.toCol] = promoteTo;
                     setPendingPromotion(null);
                     setCoordinates(null);
                     setLocation(null);
                     setLegalMoves([]);
-
                     setGameState((prev) => ({
                       ...prev,
-                      turnToPlay:
-                        prev.turnToPlay === "WHITE" ? "BLACK" : "WHITE",
+                      turnToPlay: prev.turnToPlay === "WHITE" ? "BLACK" : "WHITE",
                       board: promotedBoard,
                       enPassant: "-",
                     }));
-
                     handleCastlingMutation(
                       pendingPromotion.pawn,
                       pendingPromotion.isCastlingMove,
@@ -383,7 +375,7 @@ const BoardComponent: React.FC<BoardComponentProps> = ({
                 >
                   <img
                     src={`${pieceImages[promoteTo]}`}
-                    className="h-16 w-16 transition-transform group-hover:rotate-6"
+                    className="h-10 w-10 sm:h-16 sm:w-16 transition-transform group-hover:rotate-6"
                   />
                 </button>
               ))}
@@ -393,17 +385,17 @@ const BoardComponent: React.FC<BoardComponentProps> = ({
       )}
 
       {gameResult && (
-        <div className="absolute inset-0 z-[60] flex items-center justify-center bg-black/90 backdrop-blur-md transition-all animate-in fade-in duration-500">
-          <div className="text-center p-12 rounded-3xl bg-gradient-to-b from-gray-800 to-gray-900 border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
-            <div className="mb-2 text-amber-500 font-bold uppercase tracking-[0.3em] text-sm">
+        <div className="absolute inset-0 z-[60] flex items-center justify-center bg-black/90 backdrop-blur-md transition-all animate-in fade-in duration-500 px-4">
+          <div className="text-center p-6 sm:p-12 rounded-3xl bg-gradient-to-b from-gray-800 to-gray-900 border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] w-full max-w-sm">
+            <div className="mb-1 sm:mb-2 text-amber-500 font-bold uppercase tracking-[0.2em] sm:tracking-[0.3em] text-[10px] sm:text-sm">
               Checkmate
             </div>
-            <h2 className="mb-8 text-6xl font-black text-white uppercase tracking-tighter">
+            <h2 className="mb-6 sm:mb-8 text-3xl sm:text-6xl font-black text-white uppercase tracking-tighter">
               {gameResult} <span className="font-light italic text-amber-500">WON</span>
             </h2>
             <button
               onClick={resetGame}
-              className="px-10 py-4 text-xl font-bold text-gray-900 transition-all bg-amber-500 rounded-2xl hover:bg-amber-400 hover:scale-105 active:scale-95 shadow-lg shadow-amber-500/20"
+              className="px-6 py-3 sm:px-10 sm:py-4 text-base sm:text-xl font-bold text-gray-900 transition-all bg-amber-500 rounded-2xl hover:bg-amber-400 hover:scale-105 active:scale-95 shadow-lg shadow-amber-500/20"
             >
               Play Again
             </button>
@@ -425,20 +417,20 @@ const BoardComponent: React.FC<BoardComponentProps> = ({
                 <div
                   key={colIndex}
                   id={squareId}
-                  className={`relative w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center cursor-pointer transition-colors duration-200
+                  className={`relative w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 flex items-center justify-center cursor-pointer transition-colors duration-200
                   ${isLight ? "bg-[#eae9d2]" : "bg-[#4b7399]"}
-                  ${isSelected ? "ring-4 ring-inset ring-amber-400/80" : ""}
+                  ${isSelected ? "ring-2 sm:ring-4 ring-inset ring-amber-400/80" : ""}
                   `}
                   onClick={() => handleClick(rowIndex, colIndex)}
                 >
                   {/* Square Label (Coordinate) */}
                   {colIndex === 0 && (
-                    <span className={`absolute top-0.5 left-1 text-[8px] sm:text-[9px] font-bold ${isLight ? "text-[#4b7399]" : "text-[#eae9d2]"}`}>
+                    <span className={`absolute top-0.5 left-0.5 sm:left-1 text-[7px] sm:text-[9px] font-bold ${isLight ? "text-[#4b7399]" : "text-[#eae9d2]"}`}>
                       {8 - rowIndex}
                     </span>
                   )}
                   {rowIndex === 7 && (
-                    <span className={`absolute bottom-0.5 right-1 text-[8px] sm:text-[9px] font-bold ${isLight ? "text-[#4b7399]" : "text-[#eae9d2]"}`}>
+                    <span className={`absolute bottom-0.5 right-0.5 sm:right-1 text-[7px] sm:text-[9px] font-bold ${isLight ? "text-[#4b7399]" : "text-[#eae9d2]"}`}>
                       {columns[colIndex]}
                     </span>
                   )}
@@ -446,7 +438,7 @@ const BoardComponent: React.FC<BoardComponentProps> = ({
                   {piece && (
                     <img 
                       src={`${pieceImages[piece]}`} 
-                      className={`w-11 h-11 sm:w-13 sm:h-13 transition-transform duration-300 z-10 ${isSelected ? "scale-110 -translate-y-1 drop-shadow-2xl" : "drop-shadow-lg"}`} 
+                      className={`w-8 h-8 sm:w-11 sm:h-11 md:w-13 md:h-13 transition-transform duration-300 z-10 ${isSelected ? "scale-110 -translate-y-0.5 sm:-translate-y-1 drop-shadow-2xl" : "drop-shadow-lg"}`} 
                     />
                   )}
 
@@ -454,9 +446,9 @@ const BoardComponent: React.FC<BoardComponentProps> = ({
                   {isLegalMove && (
                     <div className="absolute inset-0 flex items-center justify-center z-20">
                       {piece ? (
-                        <div className="w-12 h-12 sm:w-14 sm:h-14 border-4 border-black/10 rounded-full"></div>
+                        <div className="w-8 h-8 sm:w-12 sm:h-12 md:w-14 md:h-14 border-2 sm:border-4 border-black/10 rounded-full"></div>
                       ) : (
-                        <div className="w-4 h-4 sm:w-5 sm:h-5 bg-black/10 rounded-full shadow-inner"></div>
+                        <div className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 bg-black/10 rounded-full shadow-inner"></div>
                       )}
                     </div>
                   )}
@@ -473,12 +465,12 @@ const BoardComponent: React.FC<BoardComponentProps> = ({
       </div>
       
       {/* Turn Indicator */}
-      <div className="mt-4 sm:mt-6 px-6 py-2 sm:py-3 rounded-full bg-white/5 border border-white/10 flex items-center gap-4">
-        <div className={`w-3 h-3 rounded-full ${gameState.turnToPlay === "WHITE" ? "bg-white shadow-[0_0_10px_white]" : "bg-gray-600"}`}></div>
-        <span className="text-sm font-medium text-gray-400 uppercase tracking-widest">
+      <div className="mt-4 sm:mt-6 px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-white/5 border border-white/10 flex items-center gap-3 sm:gap-4">
+        <div className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${gameState.turnToPlay === "WHITE" ? "bg-white shadow-[0_0_10px_white]" : "bg-gray-600"}`}></div>
+        <span className="text-[10px] sm:text-sm font-medium text-gray-400 uppercase tracking-widest">
           {gameState.turnToPlay === "WHITE" ? "White's Turn" : "Black's Turn"}
         </span>
-        <div className={`w-3 h-3 rounded-full ${gameState.turnToPlay === "BLACK" ? "bg-white shadow-[0_0_10px_white]" : "bg-gray-600"}`}></div>
+        <div className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${gameState.turnToPlay === "BLACK" ? "bg-white shadow-[0_0_10px_white]" : "bg-gray-600"}`}></div>
       </div>
     </div>
   );
