@@ -20,7 +20,7 @@ let moduleInstance: ChessValidatorModule | null = null;
 async function loadModule(): Promise<ChessValidatorModule> {
   if (!moduleInstance) {
     moduleInstance = await ChessValidator({
-      locateFile: (file: string) => `/src/wasm/${file}`,
+      locateFile: (file: string) => `/public/wasm/${file}`,
     });
   }
 
